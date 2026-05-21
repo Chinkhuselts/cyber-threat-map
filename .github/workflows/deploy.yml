@@ -1,57 +1,23 @@
-name: CI/CD to Oracle Cloud
-
-on:
-  push:
-    branches: [ "main" ]
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: chinkhuselts/cyber-threat-map
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-
-      - name: Deploy to Oracle VM via Native SSH
-        env:
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST: ${{ secrets.HOST }}
-          USER: ${{ secrets.USERNAME }}
+- name: Deploy to Oracle VM via Native SSH
         run: |
-          # 1. Set up the SSH directory and strict permissions
+          # 1. Set up the SSH directory
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           
-          # 2. Write the secret key to a file and fix Windows line endings using tr
-          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+          # 2. Safely write the multiline private key using a Heredoc
+          cat << 'EOF_SSH_KEY' > ~/.ssh/id_rsa
+          ${{ secrets.SSH_PRIVATE_KEY }}
+          EOF_SSH_KEY
+          
+          # Fix permissions and strip any accidental Windows returns
           chmod 600 ~/.ssh/id_rsa
+          sed -i 's/\r$//' ~/.ssh/id_rsa
           
-          # 3. Add the Oracle server to known hosts to prevent interactive prompts
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+          # 3. Add the Oracle server to known hosts
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
           
-          # 4. Connect and execute the deployment commands
-          ssh -i ~/.ssh/id_rsa $USER@$HOST << 'EOF'
+          # 4. Connect (Hardcoding 'ubuntu' to guarantee correct user)
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.HOST }} << 'EOF'
             # Install Docker if not present
             if ! command -v docker &> /dev/null; then
               sudo apt-get update
