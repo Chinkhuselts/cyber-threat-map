@@ -11,6 +11,28 @@ This project goes beyond simple data visualization. It serves as a live, end-to-
 ![System Architecture](architecture-diagram.png)
 *Architecture flow: From local Git push to automated CI/CD container registry, deployed to a secured Oracle Cloud VM with Caddy handling Let's Encrypt SSL termination.*
 
+## 📊 Custom Data Injection (CSV Upload)
+While the application features a built-in "Demo Mode" for testing the visualizer, it is designed to ingest and map real-world network logs. You can visualize your own firewall logs, honeypot traffic, or DDoS attack captures by uploading a custom CSV file.
+
+### CSV Syntax & Schema
+To ensure the 3D rendering engine plots the coordinates correctly, your CSV file must include specific headers. The parser is strict about the column names. 
+
+**Required Columns:**
+* `source_ip`: The IPv4 address of the origin (the attacker/sender).
+
+**Optional (but recommended) Columns:**
+* `timestamp`: The time of the event (ISO 8601 format or Epoch).
+* `port`: The destination port being targeted (e.g., 80, 443, 22).
+* `type`: The classification of the traffic (e.g., `DDoS`, `SSH Brute Force`, `Port Scan`).
+
+### Example `data.csv`
+```csv
+timestamp,source_ip,target_ip,port,type
+2026-05-21T10:00:00Z,198.51.100.23,207.127.95.57,443,HTTPS Traffic
+2026-05-21T10:00:02Z,203.0.113.89,207.127.95.57,22,SSH Brute Force
+2026-05-21T10:00:05Z,45.33.32.156,207.127.95.57,80,DDoS
+```
+
 ## 🚀 The "Why"
 I built this project to bridge the gap between "writing code" and "running production infrastructure." The goal wasn't just to make the map work, but to make it *durable*. 
 
