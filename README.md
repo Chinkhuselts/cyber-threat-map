@@ -4,9 +4,11 @@ A real-time traffic visualization system designed to track and display global ne
 
 This project goes beyond simple data visualization. It serves as a live, end-to-end demonstration of modern DevOps practices, taking a raw Node.js application and wrapping it in a secure, containerized, and fully automated deployment pipeline.
 
+[Visualization](https://security-map.duckdns.org/)
+
 ## 🗺️ System Architecture
 
-![System Architecture](diagram.png)
+![System Architecture](architecture-diagram.png)
 *Architecture flow: From local Git push to automated CI/CD container registry, deployed to a secured Oracle Cloud VM with Caddy handling Let's Encrypt SSL termination.*
 
 ## 🚀 The "Why"
